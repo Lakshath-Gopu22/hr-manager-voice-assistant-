@@ -1,0 +1,18 @@
+# Django & REST Framework
+Django>=4.2,<5.0
+djangorestframework>=3.14,<4.0
+
+# PostgreSQL adapter
+psycopg2-binary>=2.9,<3.0
+
+# OpenAI (Whisper API)
+openai>=1.0,<2.0
+
+# Text-to-Speech
+gTTS>=2.3,<3.0
+
+# Token authentication
+# (ships with DRF, no extra package needed)
+
+# Environment variables
+python-dotenv>=1.0,<2.0
