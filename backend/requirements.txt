@@ -14,5 +14,8 @@ gTTS>=2.3,<3.0
 # Token authentication
 # (ships with DRF, no extra package needed)
 
+# NLP (spaCy)
+spacy>=3.7,<4.0
+
 # Environment variables
 python-dotenv>=1.0,<2.0

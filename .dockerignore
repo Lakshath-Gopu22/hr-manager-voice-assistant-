@@ -1,0 +1,42 @@
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Environment file
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Media files
+media/audio/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Screenshots (not needed in container)
+screenshots/
+
+# Docker files (not needed inside image)
+docker-compose.yml
+
+# Gemini agent files
+.gemini/
+.agents/

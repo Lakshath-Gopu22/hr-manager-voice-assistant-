@@ -9,8 +9,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from apps.authentication.serializers import EmployeeSerializer
-from apps.hr_queries.models import LeaveRequest
-from apps.hr_queries.serializers import LeaveRequestSerializer
+from apps.hr_queries.models import LeaveRequest, LeaveBalance
+from apps.hr_queries.serializers import LeaveRequestSerializer, LeaveBalanceSerializer
 
 
 @api_view(["GET"])
@@ -29,16 +29,17 @@ def leave_view(request):
     """
     GET /api/employee/leave/
 
-    Returns leave balance and all leave requests for
-    the authenticated employee.
+    Returns leave balance (overall + per-type) and all
+    leave requests for the authenticated employee.
     """
     employee = request.user
     leave_requests = LeaveRequest.objects.filter(employee=employee)
-    serializer = LeaveRequestSerializer(leave_requests, many=True)
+    leave_balances = LeaveBalance.objects.filter(employee=employee)
 
     return Response({
         "employee_id": employee.employee_id,
         "leave_balance": employee.leave_balance,
+        "leave_balances": LeaveBalanceSerializer(leave_balances, many=True).data,
         "total_requests": leave_requests.count(),
-        "leave_requests": serializer.data,
+        "leave_requests": LeaveRequestSerializer(leave_requests, many=True).data,
     })

@@ -154,8 +154,14 @@ def _process_query(query_text, request):
     logger.info(f"Detected intent: {intent}")
 
     # ------- HR Data Retrieval -------
-    response_text = handle_intent(intent, request.user)
-    logger.info(f"HR response generated for intent '{intent}'")
+    result = handle_intent(intent, request.user, query_text)
+
+    # handle_intent returns a dict: {text, action, data}
+    response_text = result["text"]
+    action = result.get("action")
+    action_data = result.get("data")
+
+    logger.info(f"HR response generated for intent '{intent}' (action={action})")
 
     # ------- Text-to-Speech (gTTS) -------
     audio_relative_path = generate_audio(response_text)
@@ -173,12 +179,20 @@ def _process_query(query_text, request):
     )
 
     # ------- Return Response -------
-    return Response({
+    response_data = {
         "query_text": query_text,
         "detected_intent": intent,
         "response_text": response_text,
         "audio_response_url": audio_url,
-    })
+    }
+
+    # Include action fields for multi-step conversation flows
+    if action:
+        response_data["action"] = action
+    if action_data:
+        response_data["action_data"] = action_data
+
+    return Response(response_data)
 
 
 def _get_extension(filename: str) -> str:

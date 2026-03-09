@@ -653,6 +653,145 @@
         }
 
         /* ==========================================
+           LEAVE BALANCE CARDS (Employee)
+           ========================================== */
+        .leave-balance-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .leave-bal-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            animation: fadeUp 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .leave-bal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .leave-bal-card.casual::before {
+            background: #3b82f6;
+        }
+
+        .leave-bal-card.medical::before {
+            background: #ef4444;
+        }
+
+        .leave-bal-card.earned::before {
+            background: #22c55e;
+        }
+
+        .leave-bal-card .lbc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .leave-bal-card .lbc-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .leave-bal-card .lbc-icon {
+            font-size: 20px;
+        }
+
+        .leave-bal-card .lbc-value {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+        }
+
+        .leave-bal-card.casual .lbc-value {
+            color: #3b82f6;
+        }
+
+        .leave-bal-card.medical .lbc-value {
+            color: #ef4444;
+        }
+
+        .leave-bal-card.earned .lbc-value {
+            color: #22c55e;
+        }
+
+        .leave-bal-card .lbc-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .leave-bal-card .lbc-bar-bg {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .leave-bal-card .lbc-bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.6s ease;
+        }
+
+        .leave-bal-card.casual .lbc-bar {
+            background: #3b82f6;
+        }
+
+        .leave-bal-card.medical .lbc-bar {
+            background: #ef4444;
+        }
+
+        .leave-bal-card.earned .lbc-bar {
+            background: #22c55e;
+        }
+
+        .leave-bal-card .lbc-status {
+            margin-top: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .lbc-status.available {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .lbc-status.exhausted {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .lbc-status.low {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
+        @media (max-width: 768px) {
+            .leave-balance-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /*==========================================
            HR PORTAL
            ========================================== */
         .hr-actions {
@@ -1027,9 +1166,9 @@
                     <div class="stat-sub" id="statDept">–</div>
                 </div>
                 <div class="stat-card stat-accent-2">
-                    <div class="stat-label">Leave Balance</div>
+                    <div class="stat-label">Total Leave</div>
                     <div class="stat-value"><span id="statLeave">–</span></div>
-                    <div class="stat-sub">days remaining</div>
+                    <div class="stat-sub">days remaining (all types)</div>
                 </div>
                 <div class="stat-card stat-accent-3">
                     <div class="stat-label">Attendance</div>
@@ -1042,6 +1181,7 @@
                     <div class="stat-sub">voice queries</div>
                 </div>
             </div>
+
 
             <!-- Tabs -->
             <div class="tabs" id="mainTabs">
@@ -1109,8 +1249,9 @@
                             </div>
                             <div class="result-item">
                                 <div class="label">HR Response</div>
-                                <div class="value" id="resText">–</div>
+                                <div class="value" id="resText" style="white-space:pre-line;">–</div>
                             </div>
+                            <div class="result-item" id="actionArea" style="display:none;"></div>
                             <div class="result-item">
                                 <div class="label">🔊 Audio Response</div>
                                 <audio controls id="resAudio"></audio>
@@ -1442,7 +1583,9 @@
         }
 
         // ==========================================
-        const leaveTypeLabelsEmp = { casual: '🏖️ Casual', medical: '🏥 Medical', earned: '💼 Earned' };
+        const leaveTypeLabelsEmp = { casual: 'Casual', medical: 'Medical', earned: 'Earned' };
+        const leaveTypeColors = { casual: '#3b82f6', medical: '#ef4444', earned: '#22c55e' };
+        const leaveTypeIcons = { casual: 'CL', medical: 'ML', earned: 'EL' };
 
         async function loadLeaveData() {
             try {
@@ -1452,7 +1595,14 @@
                 const data = await res.json();
                 const tbody = document.getElementById('leaveTableBody');
 
-                document.getElementById('statLeave').textContent = data.leave_balance;
+                // Update total leave balance in stat card
+                if (data.leave_balances && data.leave_balances.length > 0) {
+                    let totalRemaining = 0;
+                    data.leave_balances.forEach(bal => totalRemaining += bal.remaining);
+                    document.getElementById('statLeave').textContent = totalRemaining;
+                } else {
+                    document.getElementById('statLeave').textContent = data.leave_balance;
+                }
 
                 if (data.leave_requests.length === 0) {
                     tbody.innerHTML = '';
@@ -1474,6 +1624,143 @@
             } catch (err) {
                 console.error('Leave load error:', err);
             }
+        }
+
+        // ==========================================
+        // LEAVE FLOW – Conversational UI Helpers
+        // ==========================================
+
+        function renderLeaveTypeCards(balances) {
+            const actionArea = document.getElementById('actionArea');
+            actionArea.style.display = 'block';
+            actionArea.innerHTML = `
+                <div class="label">Select Leave Type</div>
+                <div class="leave-balance-row" style="display:grid; margin-top:12px;">
+                    ${balances.map(bal => {
+                const color = leaveTypeColors[bal.leave_type] || '#6366f1';
+                const icon = leaveTypeIcons[bal.leave_type] || '📋';
+                const isExhausted = bal.remaining === 0;
+                const cursor = isExhausted ? 'not-allowed' : 'pointer';
+                const opacity = isExhausted ? '0.5' : '1';
+                return `
+                            <div class="leave-bal-card ${bal.leave_type}"
+                                 style="cursor:${cursor}; opacity:${opacity}; transition: transform 0.15s, box-shadow 0.2s;"
+                                 ${!isExhausted ? `onclick="selectLeaveType('${bal.leave_type}')" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 20px ${color}33'" onmouseleave="this.style.transform='';this.style.boxShadow=''"` : ''}>
+                                <div class="lbc-header">
+                                    <span class="lbc-label">${bal.label || bal.leave_type}</span>
+                                    <span class="lbc-icon">${icon}</span>
+                                </div>
+                                <div class="lbc-value">${bal.remaining}</div>
+                                <div class="lbc-sub">${bal.used} used of ${bal.total} total</div>
+                                <div class="lbc-bar-bg">
+                                    <div class="lbc-bar" style="width:${bal.total > 0 ? Math.round((bal.used / bal.total) * 100) : 0}%"></div>
+                                </div>
+                                <span class="lbc-status ${isExhausted ? 'exhausted' : bal.remaining <= Math.ceil(bal.total * 0.25) ? 'low' : 'available'}">
+                                    ${isExhausted ? 'Exhausted' : `${bal.remaining} available`}
+                                </span>
+                            </div>
+                        `;
+            }).join('')}
+                </div>
+            `;
+        }
+
+        function selectLeaveType(type) {
+            sendToServer(`Apply for ${type} leave`);
+        }
+
+        // Date input step for leave flow
+        function renderDateInput(leaveType, label) {
+            const actionArea = document.getElementById('actionArea');
+            const today = new Date().toISOString().split('T')[0];
+            actionArea.style.display = 'block';
+            actionArea.innerHTML = `
+                <div class="label">Select Leave Dates for ${label}</div>
+                <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div>
+                        <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">Start Date</label>
+                        <input type="date" id="leaveStartDate" min="${today}"
+                            style="width:100%;padding:12px 16px;background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;font-family:inherit;outline:none;color-scheme:dark;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">End Date</label>
+                        <input type="date" id="leaveEndDate" min="${today}"
+                            style="width:100%;padding:12px 16px;background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;font-family:inherit;outline:none;color-scheme:dark;">
+                    </div>
+                </div>
+                <div id="leaveDateInfo" style="margin-top:8px;font-size:13px;color:var(--text-secondary);"></div>
+                <button class="btn" style="padding:10px;font-size:14px;margin-top:12px;width:100%;"
+                    onclick="submitLeaveDates('${leaveType}')">
+                    Continue
+                </button>
+            `;
+            // Auto-update day count
+            const updateDayInfo = () => {
+                const s = document.getElementById('leaveStartDate')?.value;
+                const e = document.getElementById('leaveEndDate')?.value;
+                const info = document.getElementById('leaveDateInfo');
+                if (s && e) {
+                    const diff = Math.ceil((new Date(e) - new Date(s)) / (1000 * 60 * 60 * 24)) + 1;
+                    if (diff > 0) info.textContent = `Duration: ${diff} day${diff > 1 ? 's' : ''}`;
+                    else info.textContent = 'End date must be on or after start date.';
+                }
+            };
+            setTimeout(() => {
+                document.getElementById('leaveStartDate')?.addEventListener('change', updateDayInfo);
+                document.getElementById('leaveEndDate')?.addEventListener('change', updateDayInfo);
+            }, 100);
+        }
+
+        function submitLeaveDates(type) {
+            const startDate = document.getElementById('leaveStartDate')?.value;
+            const endDate = document.getElementById('leaveEndDate')?.value;
+            if (!startDate || !endDate) {
+                alert('Please select both start date and end date.');
+                return;
+            }
+            if (new Date(endDate) < new Date(startDate)) {
+                alert('End date must be on or after start date.');
+                return;
+            }
+            // Store dates globally for the reason step
+            window._leaveFlowDates = { startDate, endDate };
+            sendToServer(`Apply for ${type} leave from ${startDate} to ${endDate}`);
+        }
+
+        function renderReasonInput(leaveType, label, startDate, endDate, days) {
+            const actionArea = document.getElementById('actionArea');
+            actionArea.style.display = 'block';
+            const dateInfo = startDate && endDate
+                ? `<div style="margin-bottom:8px;font-size:13px;color:var(--text-secondary);">${label}: ${startDate} to ${endDate} (${days} day${days > 1 ? 's' : ''})</div>`
+                : '';
+            actionArea.innerHTML = `
+                <div class="label">Enter Reason for ${label}</div>
+                ${dateInfo}
+                <div style="margin-top:12px;">
+                    <input type="text" id="leaveReasonInput"
+                        placeholder="e.g. Family function, Doctor appointment..."
+                        style="width:100%;padding:12px 16px;background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;"
+                        onkeydown="if(event.key==='Enter') submitLeaveReason('${leaveType}', '${startDate || ''}', '${endDate || ''}')">
+                    <button class="btn" style="padding:10px;font-size:14px;width:100%;"
+                        onclick="submitLeaveReason('${leaveType}', '${startDate || ''}', '${endDate || ''}')">
+                        Submit Leave Request
+                    </button>
+                </div>
+            `;
+            setTimeout(() => document.getElementById('leaveReasonInput')?.focus(), 100);
+        }
+
+        function submitLeaveReason(type, startDate, endDate) {
+            const reason = document.getElementById('leaveReasonInput')?.value?.trim();
+            if (!reason) {
+                alert('Please enter a reason for your leave.');
+                return;
+            }
+            // Use stored dates if not passed directly
+            const sd = startDate || window._leaveFlowDates?.startDate || '';
+            const ed = endDate || window._leaveFlowDates?.endDate || '';
+            const dateStr = sd && ed ? ` from ${sd} to ${ed}` : '';
+            sendToServer(`Apply for ${type} leave${dateStr}. Reason: ${reason}`);
         }
 
         // ==========================================
@@ -1642,6 +1929,7 @@
             const micBtn = document.getElementById('micBtn');
             const micLabel = document.getElementById('micLabel');
             const sendBtn = document.getElementById('sendBtn');
+            const actionArea = document.getElementById('actionArea');
 
             // Show processing state
             micBtn.classList.remove('recording');
@@ -1649,6 +1937,10 @@
             micBtn.textContent = '⏳';
             micLabel.textContent = `Processing: "${queryText}"`;
             sendBtn.disabled = true;
+
+            // Clear previous action area
+            actionArea.style.display = 'none';
+            actionArea.innerHTML = '';
 
             try {
                 const res = await fetch(`${API}/api/voice/text-query/`, {
@@ -1669,6 +1961,21 @@
                 document.getElementById('resQuery').textContent = data.query_text;
                 document.getElementById('resIntent').textContent = data.detected_intent;
                 document.getElementById('resText').textContent = data.response_text;
+
+                // Handle multi-step conversation actions
+                if (data.action === 'select_leave_type' && data.action_data?.balances) {
+                    renderLeaveTypeCards(data.action_data.balances);
+                } else if (data.action === 'enter_dates' && data.action_data) {
+                    renderDateInput(data.action_data.leave_type, data.action_data.label);
+                } else if (data.action === 'enter_reason' && data.action_data) {
+                    renderReasonInput(
+                        data.action_data.leave_type,
+                        data.action_data.label,
+                        data.action_data.start_date,
+                        data.action_data.end_date,
+                        data.action_data.days
+                    );
+                }
 
                 const audioEl = document.getElementById('resAudio');
                 audioEl.src = data.audio_response_url;

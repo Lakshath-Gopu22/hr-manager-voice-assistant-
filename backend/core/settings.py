@@ -9,26 +9,18 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
-# --------------------------------------------------
-# BASE DIRECTORY
-# --------------------------------------------------
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# --------------------------------------------------
-# SECURITY
-# --------------------------------------------------
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-insecure-key-change-me")
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
 ALLOWED_HOSTS = ["*"]
 
-# --------------------------------------------------
-# INSTALLED APPS
-# --------------------------------------------------
+
 INSTALLED_APPS = [
-    # Django built-ins
+    
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -36,11 +28,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Third-party
+    
     "rest_framework",
     "rest_framework.authtoken",
 
-    # Project apps
+    
     "apps.authentication",
     "apps.employees",
     "apps.hr_queries",
@@ -49,9 +41,7 @@ INSTALLED_APPS = [
     "apps.audit_logs",
 ]
 
-# --------------------------------------------------
-# MIDDLEWARE
-# --------------------------------------------------
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -82,9 +72,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-# --------------------------------------------------
-# DATABASE – PostgreSQL
-# --------------------------------------------------
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -96,14 +84,10 @@ DATABASES = {
     }
 }
 
-# --------------------------------------------------
-# CUSTOM USER MODEL
-# --------------------------------------------------
+
 AUTH_USER_MODEL = "authentication.Employee"
 
-# --------------------------------------------------
-# PASSWORD VALIDATION
-# --------------------------------------------------
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -111,24 +95,19 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# --------------------------------------------------
-# INTERNATIONALIZATION
-# --------------------------------------------------
+
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-# --------------------------------------------------
-# STATIC & MEDIA FILES
-# --------------------------------------------------
+
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-# --------------------------------------------------
-# DJANGO REST FRAMEWORK
-# --------------------------------------------------
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
@@ -140,12 +119,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
 }
 
-# --------------------------------------------------
-# DEFAULT PRIMARY KEY FIELD TYPE
-# --------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# --------------------------------------------------
-# OPENAI CONFIGURATION (Whisper API)
-# --------------------------------------------------
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")

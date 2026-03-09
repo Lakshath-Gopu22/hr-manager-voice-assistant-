@@ -27,14 +27,12 @@ def transcribe_audio(audio_file_path: str) -> str:
     """
     api_key = settings.OPENAI_API_KEY
 
-    # ---------- Fallback for local dev without API key ----------
     if not api_key or api_key.startswith("sk-your"):
         logger.warning(
             "OPENAI_API_KEY not set. Returning placeholder transcription."
         )
         return "[DEV MODE] What is my leave balance?"
-
-    # ---------- Real API call ----------
+        
     try:
         from openai import OpenAI
 

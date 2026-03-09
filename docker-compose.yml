@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  # ---- PostgreSQL Database ----
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: voicehr_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5433:5432"       # host:container (5433 to avoid conflict with local PG)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # ---- Django Web App ----
+  web:
+    build: .
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=docker-voicehr-secret-key-change-in-production
+      - DEBUG=True
+      - DB_NAME=voicehr_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres123
+      - DB_HOST=db
+      - DB_PORT=5432
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    depends_on:
+      - db
+    volumes:
+      - media_data:/app/media
+
+volumes:
+  pgdata:
+  media_data:

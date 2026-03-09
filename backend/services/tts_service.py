@@ -27,15 +27,15 @@ def generate_audio(text: str) -> str:
     try:
         from gtts import gTTS
 
-        # Ensure the audio output directory exists
+       
         audio_dir = os.path.join(settings.MEDIA_ROOT, "audio")
         os.makedirs(audio_dir, exist_ok=True)
 
-        # Generate a unique filename
+      
         filename = f"response_{uuid.uuid4().hex[:12]}.mp3"
         file_path = os.path.join(audio_dir, filename)
 
-        # Create and save the audio
+        
         tts = gTTS(text=text, lang="en", slow=False)
         tts.save(file_path)
 
