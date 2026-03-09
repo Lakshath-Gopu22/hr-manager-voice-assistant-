@@ -5,6 +5,7 @@ env/
 
 # Environment variables (contains secrets)
 .env
+backend/.env
 
 # Python
 __pycache__/
